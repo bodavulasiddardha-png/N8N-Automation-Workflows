@@ -1,0 +1,253 @@
+{
+  "name": "My workflow 2",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 6,
+              "triggerAtMinute": 30
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -480,
+        0
+      ],
+      "id": "b5fe2b70-3701-4bf0-8bea-27be4b21c165",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://jsearch.p.rapidapi.com/search-v2",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "Data Analyst OR Business Analyst OR AI Analyst fresher Hyderabad OR Chennai OR Bangalore"
+            },
+            {
+              "name": "num_pages",
+              "value": "1"
+            },
+            {
+              "name": "country",
+              "value": "in"
+            },
+            {
+              "name": "date_posted",
+              "value": "week"
+            },
+            {
+              "name": "employment_types",
+              "value": "FULLTIME, PARTTIME, INTERN"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-rapidapi-host",
+              "value": "jsearch.p.rapidapi.com"
+            },
+            {
+              "name": "x-rapidapi-key",
+              "value": "8b541de0c5msh28bfbd2587aad88p1944dbjsnf08814834df8"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -272,
+        0
+      ],
+      "id": "cf73f5a7-5872-4a12-9956-00c8814deb9e",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "claude-haiku-4-5-20251001",
+          "mode": "list",
+          "cachedResultName": "claude-haiku-4-5-20251001"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are a job suitability checker.\n\nCandidate Profile:\n- Final year CSE\n- Skills: Excel, SQL, Power BI, Python basics, Tableau, Stakeholder management, business management, Communication, Problem solving\n- Target roles: Data Analyst, Business Analyst, AI BA\n- Experience: Fresher, 0-2 years only\n- Locations: Hyderabad, Chennai, Bangalore\n\nJob Details:\nTitle: {{ $json.job_title }}\nCompany: {{ $json.employer_name }}\nLocation: {{ $json.job_city }}, {{ $json.job_country }}\nType: {{ $json.job_employment_type }}\nDescription: {{ $json.job_description }}\n\nReply in EXACTLY this format:\nSUITABLE: Yes/No\nMATCH SCORE: X/10\nREASON: (one line why)\nPRIORITY: High/Medium/Low"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
+      "position": [
+        192,
+        0
+      ],
+      "id": "a96847fd-f7de-459e-95cd-570666a85eeb",
+      "name": "Message a model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "A1iB8DDScATcOndJ",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const jobs = $input.first().json.data.jobs;\n\nreturn jobs.map(job => ({\n  json: {\n    job_title: job.job_title,\n    employer_name: job.employer_name,\n    job_city: job.job_city,\n    job_employment_type: job.job_employment_type,\n    job_description: job.job_description?.slice(0, 300),\n    job_apply_link: job.job_apply_link\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -32,
+        0
+      ],
+      "id": "360dcb75-f9fb-407c-9f83-075ad1e811d5",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a6cf4650-dced-4b05-a3d7-a0fdf362c465",
+              "leftValue": "={{ $json.content[0].text }}",
+              "rightValue": "SUITABLE: Yes",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        544,
+        0
+      ],
+      "id": "7f18ca5a-7319-4c90-be9f-7d00b0fced0e",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "chatId": "1901335810",
+        "text": "=🔔 *Job Match Found!*\n\n💼 *{{ $('Code in JavaScript').item.json.job_title }}*\n🏢 {{ $('Code in JavaScript').item.json.employer_name }}\n📍 {{ $('Code in JavaScript').item.json.job_city }}\n\n🤖 *Claude Analysis:*\n{{ $json.content[0].text }}\n\n🔗 {{ $('Code in JavaScript').item.json.job_apply_link }}\n\n➡️ Apply? *yes* OR *no*",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        480,
+        208
+      ],
+      "id": "84d7caf8-7bc5-4932-9028-9518dc5699f9",
+      "name": "Send a text message",
+      "webhookId": "53b3410d-ae0a-471c-b0e1-d99001d700d8",
+      "credentials": {
+        "telegramApi": {
+          "id": "U2o8hUzVGUaejZoH",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "95ee2717-9229-46d9-acdc-6353869a97e6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b8fdf5b85e63296c2cd77a00c276a1870b081e9cec6936fee482f260f7447b60"
+  },
+  "id": "9HnYl2McksnQ0HpU",
+  "tags": []
+}

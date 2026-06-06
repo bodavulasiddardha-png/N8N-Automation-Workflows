@@ -1,0 +1,403 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -16,
+        -112
+      ],
+      "id": "031429fd-40fb-49db-8dfa-2956e4708771",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "ElCC0ClFNxltTMkw",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "claude-haiku-4-5-20251001",
+          "mode": "list",
+          "cachedResultName": "claude-haiku-4-5-20251001"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Classify this email into one of these categories: URGENT, IMPORTANT, NORMAL, SPAM.\n\nURGENT = Job offers, interview calls, payment dues, deadlines, emergencies, anything requiring immediate action.\nIMPORTANT = College, family, work updates, Linkedin messages, job alerts, recruiter emails.\nNORMAL = Newsletters, general info.\nSPAM = Promotions, ads, unknown senders.\n\nEmail: {{ $json.snippet }}\n\nReply with ONE word only: URGENT, IMPORTANT, NORMAL, or SPAM."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
+      "position": [
+        160,
+        -112
+      ],
+      "id": "b47db094-04a8-4da6-9abe-84c33223b1b5",
+      "name": "Message a model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "A1iB8DDScATcOndJ",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.content[0].text.trim() }}",
+                    "rightValue": "URGENT",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "18dee3d7-f357-4719-85cb-0a102f107ea1"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "6645dfb3-a5d1-4967-9f0a-e17ac34f59ef",
+                    "leftValue": "={{ $json.content[0].text.trim() }}",
+                    "rightValue": "IMPORTANT",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "be103205-ca66-4041-a7f9-f0ccf948b459",
+                    "leftValue": "={{ $json.content[0].text.trim() }}",
+                    "rightValue": "SPAM",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "a7868515-2065-4c7e-9d28-0cee52c1397b",
+                    "leftValue": "={{ $json.content[0].text.trim() }}",
+                    "rightValue": "NORMAL",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        464,
+        -144
+      ],
+      "id": "c2380704-be9f-4379-bf0b-c43b013cbabb",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "labelIds": [
+          "IMPORTANT"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        736,
+        -64
+      ],
+      "id": "2e6620d8-fd75-42a6-83ee-ea0af9bfb6a6",
+      "name": "Add label to message",
+      "webhookId": "e4185584-3585-4d71-8a87-fd560517c482",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "ElCC0ClFNxltTMkw",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "labelIds": [
+          "SPAM"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        736,
+        64
+      ],
+      "id": "aef055f3-a79e-4dc4-b1b8-faa108182fa4",
+      "name": "Add label to message1",
+      "webhookId": "b98a2784-4e5c-41c1-940d-827ffde7e42e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "ElCC0ClFNxltTMkw",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "markAsRead",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}"
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        736,
+        208
+      ],
+      "id": "502f3bcc-14fd-4132-8837-c0d02e31d6c2",
+      "name": "Mark a message as read",
+      "webhookId": "1b32626a-8498-4893-8f5e-0f38b4dd1dce",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "ElCC0ClFNxltTMkw",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "removeLabels",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "labelIds": [
+          "INBOX"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        896,
+        -208
+      ],
+      "id": "26d1d6b1-c66c-430e-8c30-e10ae0c08e1f",
+      "name": "Remove label from message",
+      "webhookId": "497a0e94-53d3-45e6-8ecf-f6d99e9bf852",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "ElCC0ClFNxltTMkw",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "labelIds": [
+          "Label_3618508689356080931"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        720,
+        -208
+      ],
+      "id": "7dbc140b-deb6-49be-b9b8-5bf94d0c5a80",
+      "name": "Add label to message2",
+      "webhookId": "78a7cb33-799a-4913-8f55-b6ebb470c230",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "ElCC0ClFNxltTMkw",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "1901335810",
+        "text": "=🚨 <b>New Urgent Mail!</b>  📧 <b>Subject:</b> {{$(\"Gmail Trigger\").first().json[\"Subject\"]}}  👤 <b>From:</b> {{$(\"Gmail Trigger\").first().json[\"From\"]}}  📅 <b>Date:</b> {{$(\"Gmail Trigger\").first().json[\"internalDate\"]}}  🔗 <a href=\"https://mail.google.com/mail/u/0/#inbox/{{$(\"Gmail Trigger\").first().json[\"id\"]}}\">Click here to open Mail</a>  <i>This message was sent automatically with n8n</i>",
+        "additionalFields": {
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1072,
+        -208
+      ],
+      "id": "2d382cc3-9fe0-4491-9986-9d17a4ecc7b3",
+      "name": "Send a text message",
+      "webhookId": "75c62d1a-5ffe-4517-9ce4-462365ccde47",
+      "credentials": {
+        "telegramApi": {
+          "id": "U2o8hUzVGUaejZoH",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Add label to message2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add label to message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add label to message1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mark a message as read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add label to message2": {
+      "main": [
+        [
+          {
+            "node": "Remove label from message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remove label from message": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "53abc4bd-d807-4d8c-9d55-09eb1524b974",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b8fdf5b85e63296c2cd77a00c276a1870b081e9cec6936fee482f260f7447b60"
+  },
+  "id": "cAVp8JJRR4yBXcfO",
+  "tags": []
+}
