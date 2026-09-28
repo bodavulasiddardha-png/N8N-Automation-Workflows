@@ -159,7 +159,7 @@
     },
     {
       "parameters": {
-        "chatId": "1901335810",
+        "chatId": "YOUR_TELEGRAM_CHAT_ID",
         "text": "=🔔 *Job Match Found!*\n\n💼 *{{ $('Code in JavaScript').item.json.job_title }}*\n🏢 {{ $('Code in JavaScript').item.json.employer_name }}\n📍 {{ $('Code in JavaScript').item.json.job_city }}\n\n🤖 *Claude Analysis:*\n{{ $json.content[0].text }}\n\n🔗 {{ $('Code in JavaScript').item.json.job_apply_link }}\n\n➡️ Apply? *yes* OR *no*",
         "additionalFields": {}
       },

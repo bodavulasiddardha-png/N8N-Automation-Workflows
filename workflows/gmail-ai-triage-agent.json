@@ -286,7 +286,7 @@
     },
     {
       "parameters": {
-        "chatId": "1901335810",
+        "chatId": "YOUR_TELEGRAM_CHAT_ID",
         "text": "=🚨 <b>New Urgent Mail!</b>  📧 <b>Subject:</b> {{$(\"Gmail Trigger\").first().json[\"Subject\"]}}  👤 <b>From:</b> {{$(\"Gmail Trigger\").first().json[\"From\"]}}  📅 <b>Date:</b> {{$(\"Gmail Trigger\").first().json[\"internalDate\"]}}  🔗 <a href=\"https://mail.google.com/mail/u/0/#inbox/{{$(\"Gmail Trigger\").first().json[\"id\"]}}\">Click here to open Mail</a>  <i>This message was sent automatically with n8n</i>",
         "additionalFields": {
           "parse_mode": "HTML"
